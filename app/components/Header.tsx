@@ -9,7 +9,7 @@ import {
 
 export default function Header() {
   return (
-    <header className="h-32 px-4 py-6">
+    <header className="w-full h-32 px-4 py-6 border-b-2 shadow-sm">
       <nav className="flex justify-end items-center gap-4">
         <SignedIn>
           <p>You are signed in!</p>
