@@ -12,7 +12,7 @@ export const meta: MetaFunction = () => {
 
 export default function Index() {
   return (
-    <div className="min-h-screen max-w-[1100px] m-auto">
+    <div className="min-h-screen m-auto">
       <Header />
       <h1>Index Route</h1>
       <Button>Testowy button</Button>
