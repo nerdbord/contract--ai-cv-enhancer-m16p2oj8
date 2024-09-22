@@ -12,7 +12,6 @@ import { rootAuthLoader } from "@clerk/remix/ssr.server";
 import { ClerkApp } from "@clerk/remix";
 
 import "./tailwind.css";
-import Footer from "~/components/Footer";
 // import Header from "~/components/Header";
 
 // Export as the root route loader (opcja ta lub zakomentowana nizej - gdybyśmy potrzebowały sprawdzac usera)
@@ -55,7 +54,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body className="h-full bg-muted">
         {children}
-        <Footer />
         <ScrollRestoration />
         <Scripts />
       </body>
