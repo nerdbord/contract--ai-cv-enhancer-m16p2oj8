@@ -5,30 +5,9 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
-import type { LinksFunction, LoaderFunction } from "@remix-run/node";
-
-// Import rootAuthLoader
-import { rootAuthLoader } from "@clerk/remix/ssr.server";
-import { ClerkApp } from "@clerk/remix";
+import type { LinksFunction } from "@remix-run/node";
 
 import "./tailwind.css";
-// import Header from "~/components/Header";
-
-// Export as the root route loader (opcja ta lub zakomentowana nizej - gdybyśmy potrzebowały sprawdzac usera)
-export const loader: LoaderFunction = (args) => rootAuthLoader(args);
-
-// Imports
-// If you need to load in additonal data, you can pass your loader directly to the rootAuthLoader:
-
-// export const loader: LoaderFunction = args => {
-//   return rootAuthLoader(args, ({ request }) => {
-//     const { sessionId, userId, getToken } = request.auth;
-//     // fetch data
-//     return { yourData: 'here' };
-//   });
-// };
-
-// Additonal application code
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -52,7 +31,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Meta />
         <Links />
       </head>
-      <body className="h-full bg-muted">
+      <body>
         {children}
         <ScrollRestoration />
         <Scripts />
@@ -61,8 +40,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-function App() {
+export default function App() {
   return <Outlet />;
 }
-
-export default ClerkApp(App);
