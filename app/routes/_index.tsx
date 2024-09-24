@@ -1,5 +1,7 @@
-import { MetaFunction } from "@remix-run/node";
+import { MetaFunction, LoaderFunction } from "@remix-run/node";
+import { getAuth } from "@clerk/remix/ssr.server";
 import { Link } from "@remix-run/react";
+import { createUserFromClerk } from "actions/user";
 import {
   SignInButton,
   SignOutButton,
@@ -26,17 +28,25 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+export const loader: LoaderFunction = async (args) => {
+  const { userId } = await getAuth(args);
+  //console.log("userId", userId);
+  if (userId) {
+    await createUserFromClerk(userId);
+  }
+
+  return { data: { userId } };
+};
+
 export default function Index() {
   return (
-    <main className="flex flex-col h-screen items-center justify-center">
+    <main className="flex flex-col h-screen items-center justify-start gap-16 p-4">
       <div>
-        <h1>Index Route</h1>
         <div className="flex gap-4">
           {" "}
           <SignedIn>
             <p>You are signed in!</p>
             <div>
-              <p>View your profile here</p>
               <UserButton />
             </div>
             <div>
@@ -52,10 +62,17 @@ export default function Index() {
               <SignUpButton />
             </div>
           </SignedOut>
+          <Link to="/dashboard">
+            <button
+              type="submit"
+              className="mt-4 p-2 bg-blue-500 text-white rounded"
+            >
+              dashboard
+            </button>
+          </Link>
         </div>
       </div>
-      app
-      <Link to="/dashboard">dashboard</Link>
+      LANDING
     </main>
   );
 }
