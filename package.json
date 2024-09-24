@@ -4,7 +4,7 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "build": "remix build && cp -r public dist/public",
+    "build": "remix vite:build",
     "dev": "remix vite:dev",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "start": "remix-serve ./build/server/index.js",
@@ -13,6 +13,7 @@
   "dependencies": {
     "@clerk/clerk-sdk-node": "^5.0.42",
     "@clerk/remix": "^4.2.29",
+    "@netlify/remix-edge-adapter": "^3.4.2",
     "@prisma/client": "^5.19.1",
     "@remix-run/node": "^2.12.1",
     "@remix-run/react": "^2.12.1",
