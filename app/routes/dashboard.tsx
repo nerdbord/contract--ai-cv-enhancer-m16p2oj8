@@ -1,8 +1,10 @@
 import { LoaderFunction, redirect, ActionFunction } from "@remix-run/node";
 import { getAuth } from "@clerk/remix/ssr.server";
 import { useActionData, useLoaderData } from "@remix-run/react";
-import { saveCV } from "actions/cv";
+import { saveCV, CVSchema } from "actions/cv";
 import { getUserByClerkId } from "actions/user";
+import { generateObject } from "ai";
+import { openai } from "lib/openai";
 
 export const loader: LoaderFunction = async (args) => {
   const { userId } = await getAuth(args);
@@ -20,16 +22,12 @@ export const action: ActionFunction = async ({ request }) => {
   const name = formData.get("textInput") as string;
   const userId = formData.get("userDBId") as string;
 
-  console.log("Form Data Received:");
-  console.log("File:", file);
-  console.log("UserDBID => ", userId);
-
   if (!file) {
     return { message: "No file uploaded" };
   }
 
   if (!userId) {
-    return { message: "user ID missing." };
+    return { message: "User ID is missing." };
   }
 
   try {
@@ -38,17 +36,35 @@ export const action: ActionFunction = async ({ request }) => {
     const fileName = file.name;
     const mimeType = file.type;
 
+    // Hypothetical function - replace with the correct function from the SDK if available
+    let structuredCVData = null;
+    try {
+      structuredCVData = await generateObject({
+        model: openai("gpt-4o"),
+        schema: CVSchema,
+        fileBuffer: buffer,
+        fileMimeType: mimeType,
+        prompt:
+          "Please extract and structure the information from the attached CV.",
+      });
+    } catch (error) {
+      console.error("Error generating structured data from file:", error);
+      return { message: "Failed to generate structured data from CV." };
+    }
+
     const savedCV = await saveCV({
       fileBuffer: buffer,
       userId,
       name,
       fileName,
       mimeType,
+      extractedText: JSON.stringify(structuredCVData),
     });
 
     return {
       message: `File ${fileName} uploaded and saved to database successfully.`,
       cvId: savedCV.id,
+      structuredData: structuredCVData,
     };
   } catch (error) {
     return { message: "Error uploading file.", error };
@@ -56,10 +72,11 @@ export const action: ActionFunction = async ({ request }) => {
 };
 
 export default function DashboardRoute() {
-  const actionData = useActionData<{ message: string }>();
+  const actionData = useActionData<{
+    message: string;
+    structuredData?: Record<string, unknown>;
+  }>();
   const loaderData = useLoaderData<{ userDBId: string }>();
-
-  console.log("Loader Data:", loaderData);
 
   return (
     <main className="flex flex-col h-screen items-center justify-start gap-16 p-4">
@@ -70,7 +87,7 @@ export default function DashboardRoute() {
         method="post"
         encType="multipart/form-data"
       >
-        {/* Use the loader data for the hidden input field */}
+        {/* the hidden input field to pass the userDBId to the action */}
         <input type="hidden" name="userDBId" value={loaderData.userDBId} />
         <input type="file" name="file" required />
         <div className="flex flex-col space-y-2">
@@ -78,7 +95,7 @@ export default function DashboardRoute() {
             type="text"
             id="textInput"
             name="textInput"
-            placeholder=" Give your CV a name, eg. 'original CV'"
+            placeholder="Give your CV a name, e.g., 'original CV'"
             className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -91,7 +108,14 @@ export default function DashboardRoute() {
         </button>
       </form>
       {actionData && (
-        <p className="mt-4 text-green-500">{actionData.message}</p>
+        <div className="mt-4 text-green-500">
+          <p>{actionData.message}</p>
+          {actionData.structuredData && (
+            <pre className="bg-gray-100 p-4 rounded-md mt-4">
+              <code>{JSON.stringify(actionData.structuredData, null, 2)}</code>
+            </pre>
+          )}
+        </div>
       )}
     </main>
   );

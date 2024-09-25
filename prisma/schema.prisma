@@ -23,6 +23,7 @@ model User {
 
 model CV {
   id        Int       @id @default(sequence())
+  extractedText  Json  // Pole do przechowywania tekstu z pliku PDF w formacie JSON
   cv        Bytes     // Pole do przechowywania pliku PDF
   name      String    // Nadana przez usera nazwa pliku
   fileName  String   
