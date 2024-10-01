@@ -3,5 +3,10 @@ module.exports = {
   theme: {
     extend: {},
   },
-  plugins: [],
+  plugins: [
+    plugin(function ({ addVariant }) {
+      addVariant('children', '&>*');
+    }),
+    tailwindcssSignals,
+  ],
 };

@@ -1,5 +1,5 @@
 {
-  "name": "",
+  "name": "contract--ai-cv-enhancer-m16p2oi4-3c78",
   "private": true,
   "description": "",
   "license": "",
@@ -20,7 +20,6 @@
     "start": "cross-env NODE_ENV=production netlify dev",
     "typecheck": "tsc -b"
   },
-  "prettier": {},
   "eslintIgnore": [
     "/netlify/functions/server",
     "/node_modules",
@@ -50,9 +49,10 @@
     "eslint-config-prettier": "^9.0.0",
     "netlify-plugin-cypress": "^2.2.1",
     "npm-run-all2": "^5.0.0",
-    "prettier": "^3.1.0",
-    "prettier-plugin-tailwindcss": "^0.6.0",
+    "prettier": "^3.3.3",
+    "prettier-plugin-tailwindcss": "^0.6.8",
     "tailwindcss": "^3.3.5",
+    "tailwindcss-signals": "^0.0.25",
     "typescript": "^5.3.2"
   },
   "engines": {
