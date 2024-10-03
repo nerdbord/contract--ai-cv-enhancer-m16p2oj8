@@ -14,14 +14,20 @@ import {
 } from "@remix-run/react";
 
 import tailwindStylesheetUrl from "./styles/tailwind.css";
+import styles from "./styles/index.css";
 import { getUser } from "./session.server";
+import { cssBundleHref } from "@remix-run/css-bundle";
 
 export const meta: MetaFunction = () => {
   return [{ title: "New Remix App" }];
 };
 
 export const links: LinksFunction = () => {
-  return [{ rel: "stylesheet", href: tailwindStylesheetUrl }];
+  return [
+    { rel: "stylesheet", href: tailwindStylesheetUrl },
+    { rel: "stylesheet", href: styles },
+    ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
+  ];
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {

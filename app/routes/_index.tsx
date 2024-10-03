@@ -1,6 +1,8 @@
 import { Link } from "@remix-run/react";
-import { useOptionalUser } from "~/utils";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
 
+import { useOptionalUser } from "~/utils";
 export default function Index() {
   const user = useOptionalUser();
   return (
@@ -26,6 +28,8 @@ export default function Index() {
                 Check the README.md file for instructions on how to get this
                 project deployed.
               </p>
+              <Button variant="destructive">Destructive</Button>
+              <Input type="email" placeholder="Email" />
               <div className="mx-auto mt-10 max-w-sm sm:flex sm:max-w-none sm:justify-center">
                 {user ? (
                   <Link
@@ -114,6 +118,8 @@ export default function Index() {
                 <img alt={img.alt} src={img.src} />
               </a>
             ))}
+            <Button variant="ghost">Destructive</Button>
+            <Input type="email" placeholder="Email" />
           </div>
         </div>
       </div>
