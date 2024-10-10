@@ -1,7 +1,7 @@
 import type { MetaFunction } from '@remix-run/node'
 import hero from '~/assets/hero.png'
+import Logo from '~/components/Logo'
 import { Button } from '~/components/ui/button'
-import Logo from '~/components/ui/Logo'
 
 export const meta: MetaFunction = () => {
   return [
