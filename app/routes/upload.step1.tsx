@@ -22,7 +22,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   const uniqueFileName = `${uuidv4()}-${file.name}`
   const { data, error } = await supabase.storage
-    .from('resumess')
+    .from('resumes')
     .upload(`public/${uniqueFileName}`, file) // this is just for testing now. will be secured later
 
   if (error) {
@@ -109,6 +109,7 @@ const step1 = () => {
             aria-label="Upload your resume"
           />
           <Button
+            disabled={isSubmitting}
             asChild
             variant={'outline'}
             className="mt-4 bg-transparent cursor-pointer h-auto"
