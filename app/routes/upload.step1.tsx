@@ -3,6 +3,7 @@ import { Form, redirect, useNavigation } from '@remix-run/react'
 import { useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import { Button } from '~/components/ui/button'
+import { cn } from '~/lib/utils'
 import { supabase } from '~/supabaseClient'
 
 // Action to handle form submission
@@ -28,6 +29,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 const step1 = () => {
   const [file, setFile] = useState<File | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   const navigation = useNavigation()
   const isSubmitting = navigation.state === 'submitting'
@@ -37,7 +39,7 @@ const step1 = () => {
 
     if (uploadedFile && uploadedFile.size > 2 * 1024 * 1024) {
       // 2MB limit
-      alert('File size exceeds the 2MB limit.') // TODO handle error display
+      setError('File size exceeds the 2MB limit.')
       return
     }
 
@@ -48,10 +50,10 @@ const step1 = () => {
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       ].includes(uploadedFile.type)
     ) {
-      alert('Only PDF and DOCX files are allowed.') // TODO handle error display
+      setError('Only PDF and DOCX files are allowed.') // TODO handle error display
       return
     }
-
+    setError(null)
     setFile(uploadedFile)
   }
 
@@ -60,8 +62,18 @@ const step1 = () => {
       <div className="bg-white shadow-[0_0_100px_100px_rgba(255,255,255,1)] rounded-lg p-6 my-5 w-[566px] border">
         <h3>Upload your resume</h3>
         <span className="text-xs">Accepted types: PDF, docx</span>
-        <div className="w-full py-9 border border-dashed rounded-[10px] text-center mt-4">
-          {file?.name || 'Drop file'}
+        <div
+          className={cn(
+            'relative w-full py-9 border border-dashed rounded-[10px] text-center mt-4',
+            error && 'border-red-200',
+          )}
+        >
+          {(file?.name && !error) || 'Drop file'}
+          {error && (
+            <span className="block w-full text-red-500 text-xs absolute bottom-2">
+              {error}
+            </span>
+          )}
         </div>
         <span className="w-full text-center block text-xs mt-4">or</span>
         <div className="flex justify-center">
