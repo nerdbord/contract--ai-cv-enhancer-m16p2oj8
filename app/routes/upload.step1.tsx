@@ -1,5 +1,5 @@
 import { ActionFunctionArgs } from '@remix-run/node'
-import { Form, redirect, useNavigation } from '@remix-run/react'
+import { Form, redirect, useNavigation, useRouteError } from '@remix-run/react'
 import { useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import { Button } from '~/components/ui/button'
@@ -9,22 +9,36 @@ import { supabase } from '~/supabaseClient'
 // Action to handle form submission
 export const action = async ({ request }: ActionFunctionArgs) => {
   const body = await request.formData()
-
   const file = body.get('cv-file') as File | null
+  if (!file) throw Error('Could not get file.')
 
-  if (file) {
-    const uniqueFileName = `${uuidv4()}-${file.name}`
-    const { data, error } = await supabase.storage
-      .from('resumes')
-      .upload(`public/${uniqueFileName}`, file) // this is just for testing now. will be secured later
+  const uniqueFileName = `${uuidv4()}-${file.name}`
+  const { data, error } = await supabase.storage
+    .from('resumess')
+    .upload(`public/${uniqueFileName}`, file) // this is just for testing now. will be secured later
 
-    if (error) {
-      console.error(error)
-    } else {
-      console.log('File uploaded successfully', data)
-    }
+  if (error) {
+    console.error(error)
+    // @ts-ignore
+    throw Error(error.error)
+  } else {
+    console.log('File uploaded successfully', data)
   }
   return redirect('/upload/step2')
+}
+
+export function ErrorBoundary() {
+  // @ts-ignore
+  const { message } = useRouteError()
+  return (
+    <div className="text-red-500 flex flex-col gap-4">
+      <h1>Unexpected Error</h1>
+      <p>{message || 'Something went wrong'}</p>
+      <Button>
+        <a href="/upload/step1">Try again</a>
+      </Button>
+    </div>
+  )
 }
 
 const step1 = () => {
@@ -50,7 +64,7 @@ const step1 = () => {
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       ].includes(uploadedFile.type)
     ) {
-      setError('Only PDF and DOCX files are allowed.') // TODO handle error display
+      setError('Only PDF and DOCX files are allowed.')
       return
     }
     setError(null)
