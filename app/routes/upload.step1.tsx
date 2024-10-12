@@ -11,6 +11,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const body = await request.formData()
   const file = body.get('cv-file') as File | null
   if (!file) throw Error('Could not get file.')
+  if (
+    file &&
+    ![
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    ].includes(file.type)
+  )
+    throw Error('Only PDF and DOCX files are allowed.')
 
   const uniqueFileName = `${uuidv4()}-${file.name}`
   const { data, error } = await supabase.storage
