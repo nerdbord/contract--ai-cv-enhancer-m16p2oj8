@@ -1,39 +1,128 @@
 import { ActionFunctionArgs } from '@remix-run/node'
 import { Form, redirect, useNavigation, useRouteError } from '@remix-run/react'
+import officeparser from 'officeparser' // Import officeparser
 import { useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import { Button } from '~/components/ui/button'
 import { cn } from '~/lib/utils'
 import { supabase } from '~/supabaseClient'
 
-// Action to handle form submission
-export const action = async ({ request }: ActionFunctionArgs) => {
-  const body = await request.formData()
-  const file = body.get('cv-file') as File | null
-  if (!file) throw Error('Could not get file.')
+// Validate file type and existence
+const validateFile = (file: File | null) => {
+  if (!file) throw new Error('File is required.')
   if (
-    file &&
     ![
       'application/pdf',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     ].includes(file.type)
-  )
-    throw Error('Only PDF and DOCX files are allowed.')
-
-  const uniqueFileName = `${uuidv4()}-${file.name}`
-  const { data, error } = await supabase.storage
-    .from('resumes')
-    .upload(`public/${uniqueFileName}`, file) // this is just for testing now. will be secured later
-
-  if (error) {
-    console.error(error)
-    // @ts-ignore
-    throw Error(error.error)
-  } else {
-    console.log('File uploaded successfully', data)
+  ) {
+    throw new Error('Only PDF and DOCX files are allowed.')
   }
-  return redirect('/upload/step2')
 }
+
+export const action = async ({ request }: ActionFunctionArgs) => {
+  try {
+    // Step 1: Retrieve file from the form data
+    const body = await request.formData()
+    const file = body.get('cv-file') as File | null
+
+    // Validate the file before proceeding
+    validateFile(file)
+
+    const uniqueFileName = `${uuidv4()}-${file!.name}`
+
+    // Step 2: Upload the file to Supabase Storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('resumes')
+      .upload(`public/${uniqueFileName}`, file!)
+
+    if (uploadError) {
+      throw new Error(uploadError.message || 'File upload failed.')
+    }
+
+    // Step 3: Download the file from Supabase Storage
+    const { data: downloadData, error: downloadError } = await supabase.storage
+      .from('resumes')
+      .download(`public/${uniqueFileName}`)
+
+    if (downloadError) {
+      throw new Error(downloadError.message || 'File download failed.')
+    }
+
+    // Step 4: Convert the downloaded file to Buffer
+    const arrayBuffer = await downloadData.arrayBuffer()
+    const pdfBuffer = Buffer.from(arrayBuffer)
+
+    // Step 5: Extract text from the PDF using officeparser
+    const extractedText = await officeparser.parseOfficeAsync(pdfBuffer)
+    if (!extractedText) throw new Error('Failed to extract text from PDF.')
+
+    console.log('Extracted text:', extractedText)
+
+    // Step 6: Redirect to the next step
+    return redirect('/upload/step2')
+  } catch (err: any) {
+    console.error('Error during file processing:', err.message || err)
+
+    // Provide a user-friendly error message or return an appropriate response
+    throw new Error('File processing failed. Please try again.')
+  }
+}
+
+// Action to handle form submission
+// export const action = async ({ request }: ActionFunctionArgs) => {
+//   const body = await request.formData()
+//   const file = body.get('cv-file') as File | null
+//   if (!file) throw Error('Could not get file.')
+//   if (
+//     file &&
+//     ![
+//       'application/pdf',
+//       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+//     ].includes(file.type)
+//   )
+//     throw Error('Only PDF and DOCX files are allowed.')
+
+//   const uniqueFileName = `${uuidv4()}-${file.name}`
+//   const { data, error } = await supabase.storage
+//     .from('resumes')
+//     .upload(`public/${uniqueFileName}`, file) // this is just for testing now. will be secured later
+
+//   if (error) {
+//     console.error(error)
+//     // @ts-ignore
+//     throw Error(error.error)
+//   } else {
+//     console.log('File uploaded successfully', data)
+//   }
+
+//   // Step 2: Download the file from Supabase Storage
+//   const { data: downloadData, error: downloadError } = await supabase.storage
+//     .from('resumes')
+//     .download(`public/${uniqueFileName}`)
+
+//   if (downloadError) {
+//     console.error(downloadError)
+//     throw Error(downloadError.message)
+//   }
+
+//   // Read the file data as ArrayBuffer
+//   const arrayBuffer = await downloadData.arrayBuffer()
+//   const pdfBuffer = Buffer.from(arrayBuffer) // Convert to Buffer
+
+//   // Step 3: Use officeparser to extract text from the PDF
+//   const extractedText = await officeparser.parseOfficeAsync(pdfBuffer)
+
+//   if (!extractedText) {
+//     console.error('Error extracting text from PDF:')
+//     throw new Error('Failed to extract text')
+//   }
+
+//   console.log('Extracted text:', extractedText)
+
+//   // Step 4: Redirect to the next step (with extracted text if needed)
+//   return redirect('/upload/step2')
+// }
 
 export function ErrorBoundary() {
   // @ts-ignore
