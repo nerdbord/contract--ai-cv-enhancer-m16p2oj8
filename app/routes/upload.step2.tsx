@@ -1,10 +1,11 @@
 import { ActionFunctionArgs } from '@remix-run/node'
-import { redirect, useNavigation } from '@remix-run/react'
+import { Form, redirect, useNavigation } from '@remix-run/react'
 import { useState } from 'react'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Textarea } from '~/components/ui/textarea'
-import { formCookie } from '~/lib/cookies'
+import { cvCookie, enhancedCvCookie, jobDetailsCookie } from '~/lib/cookies'
+import { enhance } from '~/services/ai'
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   // Step 1: Get form data
@@ -15,24 +16,36 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   // Step 2: Retrieve the current cookie value
   const cookieHeader = request.headers.get('Cookie')
-  const existingData = (await formCookie.parse(cookieHeader)) || {}
-  console.log(existingData)
+  const extractedCV = (await cvCookie.parse(cookieHeader)) || {}
+  // console.log(existingData)
 
   // Step 3: Update the cookie with new data
-  const updatedData = {
-    resumeText: existingData, // Keep existing extractedText
+  const jobData = {
+    // resumeText: existingData, // Keep existing extractedText
     jobTitle, // Add new data
     companyName,
     jobDescription,
   }
+  //
+
+  const { type, enhancedCv } = await enhance(
+    extractedCV,
+    jobData.jobTitle,
+    jobData.companyName,
+    jobData.jobDescription,
+  )
+
+  // console.log(enhancedCv)
+  //
 
   // Step 4: Serialize and set the updated cookie
-  const updatedCookieHeader = await formCookie.serialize(updatedData)
+  const jobDataCookie = await jobDetailsCookie.serialize(jobData)
+  const enhancedCvCook = await enhancedCvCookie.serialize(enhancedCv)
 
   // Step 5: Redirect to the next step, with the updated cookie
   return redirect('/upload/step3', {
     headers: {
-      'Set-Cookie': updatedCookieHeader,
+      'Set-Cookie': [cvCookie, jobDataCookie, enhancedCvCook].join(', '),
     },
   })
 }
@@ -46,7 +59,7 @@ const step2 = () => {
   const isSubmitting = navigation.state === 'submitting'
 
   return (
-    <form method="post" className="w-full max-w-md space-y-4">
+    <Form method="post" className="w-full max-w-md space-y-4">
       <div>
         <label
           htmlFor="jobTitle"
@@ -61,6 +74,7 @@ const step2 = () => {
           value={jobTitle}
           onChange={(e) => setJobTitle(e.target.value)}
           required
+          disabled={isSubmitting}
         />
       </div>
 
@@ -78,6 +92,7 @@ const step2 = () => {
           value={companyName}
           onChange={(e) => setCompanyName(e.target.value)}
           required
+          disabled={isSubmitting}
         />
       </div>
 
@@ -95,17 +110,18 @@ const step2 = () => {
           value={jobDescription}
           onChange={(e) => setJobDescription(e.target.value)}
           required
+          disabled={isSubmitting}
         />
       </div>
 
       <Button
-        disabled={!jobTitle || !jobDescription || !companyName || isSubmitting}
+        disabled={isSubmitting || !jobTitle || !jobDescription || !companyName}
         type="submit"
         className="w-full"
       >
-        Start enhancing my resume
+        {!isSubmitting ? 'Start enhancing my resume' : 'Loading...'}
       </Button>
-    </form>
+    </Form>
   )
 }
 
