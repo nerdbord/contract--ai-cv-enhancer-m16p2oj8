@@ -1,50 +1,104 @@
-// /app/lib/schemas/classicCVTemplateSchema.ts
 import { z } from 'zod'
 
-// ContactType schema
-export const contactSchema = z.object({
-  phone: z.string(),
-  email: z.string().email(),
-  linkedin: z.string().optional(),
+// Schema for ExperienceType
+const ExperienceSchema = z.object({
+  companyName: z.string().describe('Company name'),
+  industry: z.string().describe('Industry of the company'),
+  speciality: z.string().describe('Speciality of the company'),
+  positionName: z.string().min(1).describe('Position name is required'),
+  description: z.string().describe('Description is required'),
+  date: z.string().describe('Date is required'),
 })
 
-// ExperienceType schema
-export const experienceSchema = z.object({
-  company: z.string(),
-  sector: z.string(),
-  companyType: z.string(),
-  position: z.string(),
-  duration: z.string(),
-  description: z.string(),
-})
+// Schema for Education
+const EducationSchema = z
+  .object({
+    schoolName: z
+      .string()
+      .optional()
+      .describe('do not fill if not provided in original cv in prompt.'),
+    studyName: z
+      .string()
+      .optional()
+      .describe('do not fill if not provided in original cv in prompt.'),
+    year: z
+      .string()
+      .optional()
+      .describe('do not fill if not provided in original cv in prompt.'),
+  })
+  .optional()
+  .describe('do not fill if not provided in original cv in prompt.')
 
-// EducationType schema
-export const educationSchema = z.object({
-  institution: z.string(),
-  degree: z.string(),
-  fieldOfStudy: z.string(),
-  duration: z.string(),
-})
-
-// CertificateType schema
-export const certificateSchema = z.object({
-  certTitle: z.string(),
-  certDate: z.string(),
-})
-
-// ClassicCVTemplate schema
+// Main schema for CvDataType
 export const classicCVTemplateSchema = z.object({
-  name: z.string(),
-  positionTitle: z.string(),
-  portfolio: z.string().optional(),
-  contact: contactSchema,
-  technologies: z.array(z.string()),
-  summary: z.string(),
-  experience: z.array(experienceSchema),
-  education: z.array(educationSchema),
-  skills: z.array(z.string()),
-  certificates: z.array(certificateSchema),
-  company: z.string(),
+  name: z.string().min(1).describe('Name item cannot be empty. your name'),
+  positionTitle: z
+    .string()
+    .min(1)
+    .describe(
+      "Position item cannot be empty. Name of the position yo apply for. generic. do not fill the same if it is specified too much. for example if 'Software Engineer (Node.js) - AI Solutions' return 'Software Engineer'",
+    ),
+  contact: z.array(
+    z
+      .string()
+      .min(1)
+      .describe(
+        'Contact item cannot be empty. Email address, phone number, location, languages.',
+      ),
+  ),
+  findMe: z.array(
+    z
+      .string()
+      .min(1)
+      .describe(
+        'Find me item cannot be empty. Links - ie. linkedin, github, portfolio.',
+      ),
+  ),
+  skills: z.array(
+    z
+      .string()
+      .min(1)
+      .describe(
+        'Skill cannot be empty. personal skills. Soft skills. not technologies',
+      ),
+  ),
+  technologies: z.array(
+    z
+      .string()
+      .min(1)
+      .describe(
+        'Technology cannot be empty. technologies you use. hard skills. ie. react, next.js, MVC',
+      ),
+  ),
+  courses: z.array(
+    z
+      .string()
+      .describe(
+        'List of courses. If provided in cv in prompt. do not fill if not provided.',
+      ),
+  ),
+  disclaimer: z.object({
+    companyName: z
+      .string()
+      .min(1)
+      .describe('Company name is required in disclaimer'),
+    referenceNumber: z
+      .string()
+      .min(1)
+      .describe('Reference number is required in disclaimer'),
+  }),
+  aboutMe: z
+    .string()
+    .min(1)
+    .describe(
+      'About me section is required. Few sentences that highlight you as a person.',
+    ),
+  experience: z.array(ExperienceSchema),
+  education: z
+    .array(EducationSchema)
+    .optional()
+    .describe('do not fill if not provided in original cv in prompt.'),
 })
 
+// Export the schemas
 export type CVData = z.infer<typeof classicCVTemplateSchema>

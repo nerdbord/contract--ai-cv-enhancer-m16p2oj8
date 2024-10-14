@@ -8,8 +8,7 @@ const Experience = ({ experience }: { experience: ExperienceType[] }) => {
         return (
           <div key={index} className="py-4">
             <p className="text-sm text-slate-600 ">
-              <span className="underline">{work.companyName}</span>
-              {` ${work.industry} ${work.speciality}`}
+              <span className="italic">{work.companyName}</span>
             </p>
             <p className="text-xl font-bold w-full flex justify-between">
               {work.positionName}
