@@ -17,16 +17,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   // Step 2: Retrieve the current cookie value
   const cookieHeader = request.headers.get('Cookie')
   const extractedCV = (await cvCookie.parse(cookieHeader)) || {}
-  // console.log(existingData)
 
   // Step 3: Update the cookie with new data
   const jobData = {
-    // resumeText: existingData, // Keep existing extractedText
-    jobTitle, // Add new data
+    jobTitle,
     companyName,
     jobDescription,
   }
-  //
 
   const { type, enhancedCv } = await enhance(
     extractedCV,
@@ -34,9 +31,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     jobData.companyName,
     jobData.jobDescription,
   )
-
-  // console.log(enhancedCv)
-  //
 
   // Step 4: Serialize and set the updated cookie
   const jobDataCookie = await jobDetailsCookie.serialize(jobData)

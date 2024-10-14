@@ -16,12 +16,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 const step3 = () => {
   // @ts-ignore
   const { extractedCV, jobData, enhancedCv } = useLoaderData()
-  console.log('extractedCV')
-  console.log(extractedCV)
-  console.log('jobData')
-  console.log(jobData)
-  console.log('enhancedCv')
-  console.log(enhancedCv)
 
   return (
     <>
