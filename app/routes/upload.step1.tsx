@@ -2,7 +2,7 @@ import { ActionFunctionArgs } from '@remix-run/node'
 import { Form, redirect, useNavigation, useRouteError } from '@remix-run/react'
 import { useState } from 'react'
 import { Button } from '~/components/ui/button'
-import { formCookie } from '~/lib/cookies'
+import { cvCookie } from '~/lib/cookies'
 import { downloadFile, uploadFile, validateFile } from '~/lib/fileHandler'
 import { extractTextFromPDF } from '~/lib/textExtractor'
 import { cn } from '~/lib/utils'
@@ -27,7 +27,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const extractedText = await extractTextFromPDF(pdfBuffer)
     // Step 5: Create the cookie with the extracted text
 
-    const cookieHeader = await formCookie.serialize(
+    const cookieHeader = await cvCookie.serialize(
       extractedText.trim().split('\n').join(' '),
     )
 
