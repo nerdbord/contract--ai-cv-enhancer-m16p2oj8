@@ -1,16 +1,26 @@
 import { v4 as uuidv4 } from 'uuid'
 import { supabase } from '~/supabaseClient'
 
+const allowedFileTypes = [
+  'application/pdf',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+]
+const maxFileSize = 2 * 1024 * 1024 // 2MB
+
 export const validateFile = (file: File | null) => {
-  if (!file) throw new Error('File is required.')
-  if (
-    ![
-      'application/pdf',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    ].includes(file.type)
-  ) {
-    throw new Error('Only PDF and DOCX files are allowed.')
+  if (!file) {
+    return 'File is required.'
   }
+
+  if (!allowedFileTypes.includes(file.type)) {
+    return 'Invalid file type. Only PDF and DOCX files are allowed.'
+  }
+
+  if (file.size > maxFileSize) {
+    return `File size exceeds the ${maxFileSize / 1024 / 1024}MB limit.`
+  }
+
+  return null
 }
 
 export const uploadFile = async (file: File) => {

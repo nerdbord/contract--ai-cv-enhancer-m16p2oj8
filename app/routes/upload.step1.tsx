@@ -2,22 +2,22 @@ import { ActionFunctionArgs } from '@remix-run/node'
 import { Form, redirect, useNavigation, useRouteError } from '@remix-run/react'
 import { useState } from 'react'
 import { Button } from '~/components/ui/button'
-import { downloadFile, uploadFile } from '~/lib/fileHandler'
+import { downloadFile, uploadFile, validateFile } from '~/lib/fileHandler'
 import { extractTextFromPDF } from '~/lib/textExtractor'
 import { cn } from '~/lib/utils'
 
 // Validate file type and existence
-const validateFile = (file: File | null) => {
-  if (!file) throw new Error('File is required.')
-  if (
-    ![
-      'application/pdf',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    ].includes(file.type)
-  ) {
-    throw new Error('Only PDF and DOCX files are allowed.')
-  }
-}
+// const validateFile = (file: File | null) => {
+//   if (!file) throw new Error('File is required.')
+//   if (
+//     ![
+//       'application/pdf',
+//       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+//     ].includes(file.type)
+//   ) {
+//     throw new Error('Only PDF and DOCX files are allowed.')
+//   }
+// }
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   try {
@@ -26,7 +26,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const file = body.get('cv-file') as File | null
 
     // Validate the file before proceeding
-    validateFile(file)
+    const validationError = validateFile(file)
+    if (validationError) throw new Error(validationError)
 
     // Step 2: Upload the file to Supabase
     const uniqueFileName = await uploadFile(file!)
@@ -70,22 +71,12 @@ const step1 = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const uploadedFile = e.target.files?.[0] || null
 
-    if (uploadedFile && uploadedFile.size > 2 * 1024 * 1024) {
-      // 2MB limit
-      setError('File size exceeds the 2MB limit.')
+    const validationError = validateFile(uploadedFile)
+    if (validationError) {
+      setError(validationError)
       return
     }
 
-    if (
-      uploadedFile &&
-      ![
-        'application/pdf',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      ].includes(uploadedFile.type)
-    ) {
-      setError('Only PDF and DOCX files are allowed.')
-      return
-    }
     setError(null)
     setFile(uploadedFile)
   }
