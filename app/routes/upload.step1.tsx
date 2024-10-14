@@ -2,22 +2,10 @@ import { ActionFunctionArgs } from '@remix-run/node'
 import { Form, redirect, useNavigation, useRouteError } from '@remix-run/react'
 import { useState } from 'react'
 import { Button } from '~/components/ui/button'
+import { formCookie } from '~/lib/cookies'
 import { downloadFile, uploadFile, validateFile } from '~/lib/fileHandler'
 import { extractTextFromPDF } from '~/lib/textExtractor'
 import { cn } from '~/lib/utils'
-
-// Validate file type and existence
-// const validateFile = (file: File | null) => {
-//   if (!file) throw new Error('File is required.')
-//   if (
-//     ![
-//       'application/pdf',
-//       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-//     ].includes(file.type)
-//   ) {
-//     throw new Error('Only PDF and DOCX files are allowed.')
-//   }
-// }
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   try {
@@ -37,10 +25,18 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
     // Step 4: Extract text from the PDF
     const extractedText = await extractTextFromPDF(pdfBuffer)
-    console.log('Extracted text:', extractedText)
+    // Step 5: Create the cookie with the extracted text
+
+    const cookieHeader = await formCookie.serialize(
+      extractedText.trim().split('\n').join(' '),
+    )
 
     // Step 5: Redirect to the next step
-    return redirect('/upload/step2')
+    return redirect('/upload/step2', {
+      headers: {
+        'Set-Cookie': cookieHeader,
+      },
+    })
   } catch (err: any) {
     console.error('Error during file processing:', err.message || err)
     throw new Error('File processing failed. Please try again.')
