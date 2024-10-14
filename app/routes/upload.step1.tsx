@@ -1,38 +1,46 @@
 import { ActionFunctionArgs } from '@remix-run/node'
 import { Form, redirect, useNavigation, useRouteError } from '@remix-run/react'
 import { useState } from 'react'
-import { v4 as uuidv4 } from 'uuid'
 import { Button } from '~/components/ui/button'
+import { formCookie } from '~/lib/cookies'
+import { downloadFile, uploadFile, validateFile } from '~/lib/fileHandler'
+import { extractTextFromPDF } from '~/lib/textExtractor'
 import { cn } from '~/lib/utils'
-import { supabase } from '~/supabaseClient'
 
-// Action to handle form submission
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const body = await request.formData()
-  const file = body.get('cv-file') as File | null
-  if (!file) throw Error('Could not get file.')
-  if (
-    file &&
-    ![
-      'application/pdf',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    ].includes(file.type)
-  )
-    throw Error('Only PDF and DOCX files are allowed.')
+  try {
+    // Step 1: Retrieve file from the form data
+    const body = await request.formData()
+    const file = body.get('cv-file') as File | null
 
-  const uniqueFileName = `${uuidv4()}-${file.name}`
-  const { data, error } = await supabase.storage
-    .from('resumes')
-    .upload(`public/${uniqueFileName}`, file) // this is just for testing now. will be secured later
+    // Validate the file before proceeding
+    const validationError = validateFile(file)
+    if (validationError) throw new Error(validationError)
 
-  if (error) {
-    console.error(error)
-    // @ts-ignore
-    throw Error(error.error)
-  } else {
-    console.log('File uploaded successfully', data)
+    // Step 2: Upload the file to Supabase
+    const uniqueFileName = await uploadFile(file!)
+
+    // Step 3: Download the file from Supabase
+    const pdfBuffer = await downloadFile(uniqueFileName)
+
+    // Step 4: Extract text from the PDF
+    const extractedText = await extractTextFromPDF(pdfBuffer)
+    // Step 5: Create the cookie with the extracted text
+
+    const cookieHeader = await formCookie.serialize(
+      extractedText.trim().split('\n').join(' '),
+    )
+
+    // Step 5: Redirect to the next step
+    return redirect('/upload/step2', {
+      headers: {
+        'Set-Cookie': cookieHeader,
+      },
+    })
+  } catch (err: any) {
+    console.error('Error during file processing:', err.message || err)
+    throw new Error('File processing failed. Please try again.')
   }
-  return redirect('/upload/step2')
 }
 
 export function ErrorBoundary() {
@@ -59,22 +67,12 @@ const step1 = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const uploadedFile = e.target.files?.[0] || null
 
-    if (uploadedFile && uploadedFile.size > 2 * 1024 * 1024) {
-      // 2MB limit
-      setError('File size exceeds the 2MB limit.')
+    const validationError = validateFile(uploadedFile)
+    if (validationError) {
+      setError(validationError)
       return
     }
 
-    if (
-      uploadedFile &&
-      ![
-        'application/pdf',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      ].includes(uploadedFile.type)
-    ) {
-      setError('Only PDF and DOCX files are allowed.')
-      return
-    }
     setError(null)
     setFile(uploadedFile)
   }
