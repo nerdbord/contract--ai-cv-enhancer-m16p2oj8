@@ -90,10 +90,10 @@ const step3 = () => {
           </header>
 
           <main className="grid md:grid-cols-2 gap-8 mb-4">
-            <div>
+            {/* <div>
               <h2 className="text-xl font-semibold mb-4">Before</h2>
               <CV data={enhancedCv} />
-            </div>
+            </div> */}
             <div>
               <h2 className="text-xl font-semibold mb-4">After</h2>
               <div
