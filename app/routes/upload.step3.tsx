@@ -81,19 +81,19 @@ const step3 = () => {
           </div> */}
               {/* <Stepper /> */}
             </div>
-            <div className="flex space-x-2">
+            {/* <div className="flex space-x-2">
               <Button variant="outline">
                 <Link to="/upload/step1">Adjust to next offer</Link>
               </Button>
               <Button onClick={downloadCV}>Download CV</Button>
-            </div>
+            </div> */}
           </header>
 
-          <main className="grid md:grid-cols-2 gap-8 mb-4">
-            {/* <div>
+          {/* <main className="grid md:grid-cols-2 gap-8 mb-4">
+            <div>
               <h2 className="text-xl font-semibold mb-4">Before</h2>
               <CV data={enhancedCv} />
-            </div> */}
+            </div>
             <div>
               <h2 className="text-xl font-semibold mb-4">After</h2>
               <div
@@ -103,7 +103,24 @@ const step3 = () => {
                 <CV data={enhancedCv} />
               </div>
             </div>
-          </main>
+          </main> */}
+          <div className="pb-8">
+            <div className="flex justify-between items-start mb-4">
+              <h2 className="text-xl font-semibold mb-4">
+                Your brand new shiny resume
+              </h2>
+              <div className="flex space-x-2">
+                <Button variant="outline">
+                  <Link to="/upload/step1">Adjust to next offer</Link>
+                </Button>
+                <Button onClick={downloadCV}>Download CV</Button>
+              </div>
+            </div>
+
+            <div id="cv-to-download" className="w-[210mm] h-[296mm] box-border">
+              <CV data={enhancedCv} />
+            </div>
+          </div>
         </div>
       ) : (
         <div>no cookie</div>
