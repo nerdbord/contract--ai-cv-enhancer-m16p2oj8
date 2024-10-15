@@ -1,4 +1,5 @@
 import type { MetaFunction } from '@remix-run/node'
+import { Link } from '@remix-run/react'
 import hero from '~/assets/hero.png'
 import Logo from '~/components/Logo'
 import { Button } from '~/components/ui/button'
@@ -17,10 +18,18 @@ export default function Index() {
       <header className="w-full flex justify-between items-center z-10 mb-20 p-5">
         <Logo className="z-10" />
         <div className="space-x-3">
-          <Button variant="outline" className="bg-white">
+          <Button
+            variant="outline"
+            className="bg-white"
+            onClick={() => alert('haha not yet')}
+          >
             Login
           </Button>
-          <Button variant="outline" className="border-slate-400 bg-white">
+          <Button
+            onClick={() => alert('haha you wish')}
+            variant="outline"
+            className="border-slate-400 bg-white"
+          >
             Register
           </Button>
         </div>
@@ -49,7 +58,9 @@ export default function Index() {
               <span>Simple editing</span>
             </div>
 
-            <Button>Improve my resume</Button>
+            <Button>
+              <Link to="/upload/step1">Improve my resume</Link>
+            </Button>
           </div>
         </div>
         {/* right */}

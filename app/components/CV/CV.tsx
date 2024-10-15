@@ -5,11 +5,12 @@ import { Section } from './section.js'
 
 type CVDisplayProps = {
   data: CVData
+  id?: string
 }
 
 export const CV: React.FC<CVDisplayProps> = ({ data }) => {
   return (
-    <div className="flex w-2/3 pt-12 border-stone-700 border-2 pb-16">
+    <div className="flex bg-white w-full h-full box-border pt-4">
       {/* left side */}
       <div className="h-full w-2/5 flex flex-col px-8 justify-around">
         <h1 className="text-3xl font-bold pb-6">{data.name}</h1>
