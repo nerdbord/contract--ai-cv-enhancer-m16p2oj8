@@ -1,5 +1,7 @@
 import { LoaderFunctionArgs } from '@remix-run/node'
 import { Link, useLoaderData } from '@remix-run/react'
+import html2canvas from 'html2canvas'
+import jsPDF from 'jspdf'
 import { CV } from '~/components/CV/CV'
 import { Button } from '~/components/ui/button'
 import { cvCookie, enhancedCvCookie, jobDetailsCookie } from '~/lib/cookies'
@@ -24,6 +26,39 @@ const step3 = () => {
   // console.log(jobData)
   // console.log('enhancedCv')
   // console.log(enhancedCv)
+
+  const downloadCV = async () => {
+    const element = document.getElementById('cv-to-download')
+
+    if (element) {
+      // Capture the content of the CV
+      const canvas = await html2canvas(element, { scale: 1.5 }) // Use scale 1 for normal size
+      const pdf = new jsPDF('p', 'mm', 'a4') // 'p' for portrait, 'mm' for mm, 'a4' for A4 size
+
+      const imgData = canvas.toDataURL('image/png')
+      const imgWidth = pdf.internal.pageSize.getWidth() // A4 width in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width // Maintain aspect ratio
+      const pageHeight = pdf.internal.pageSize.getHeight() // A4 height in mm
+      let heightLeft = imgHeight
+
+      let position = 0
+
+      // Add the first image to the PDF
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
+      heightLeft -= pageHeight
+
+      // If the image height exceeds one page, add more pages
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight
+        pdf.addPage()
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
+        heightLeft -= pageHeight
+      }
+
+      // Save the PDF with a specified filename
+      pdf.save('cv.pdf')
+    }
+  }
 
   return (
     <>
@@ -50,7 +85,7 @@ const step3 = () => {
               <Button variant="outline">
                 <Link to="/upload/step1">Adjust to next offer</Link>
               </Button>
-              <Button>Login to download</Button>
+              <Button onClick={downloadCV}>Download CV</Button>
             </div>
           </header>
 
@@ -61,7 +96,12 @@ const step3 = () => {
             </div>
             <div>
               <h2 className="text-xl font-semibold mb-4">After</h2>
-              <CV data={enhancedCv} />
+              <div
+                id="cv-to-download"
+                className="w-[210mm] h-[296mm] box-border"
+              >
+                <CV data={enhancedCv} />
+              </div>
             </div>
           </main>
         </div>
